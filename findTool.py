@@ -1,8 +1,9 @@
 import os
 import sys
+import copy
 
 
-def findWithinPath(pathArg, toFindArg, exclude=(), display=False):
+def findWithinPath(pathArg, toFindArg, exclude=(), display=True):
     foundFiles = []
     for file in os.listdir(pathArg):
         if file in exclude:
@@ -30,11 +31,18 @@ def findInFile(pathFile, toFindArg):
     return foundInfo
 
 
-def generateLog(info, file="log.txt", path=os.getcwd()):
+def generateLog(info, file="findToolLog.txt", path=os.getcwd(), sepFolder=False):
+    path = os.path.abspath(path)
     os.chdir(path)
+    if sepFolder:
+        folderName = "Logs"
+        path = f"{path}{os.sep}{folderName}"
+        if not os.path.exists(path):
+            os.mkdir(folderName)
+        os.chdir(path)
     with open(file, 'w') as f:
         f.write(info)
-    print(f"{file} generated.")
+    print(f"{file} generated at {path}.")
 
 
 def generatePrettyText(foundList, toFindArg, moreInfo=True):
@@ -60,27 +68,52 @@ def generatePrettyText(foundList, toFindArg, moreInfo=True):
 
 
 def main():
-    logFileName = "log.txt"
-    base = os.path.basename(__file__)
-    excludePaths = ("venv", base, "log.txt", logFileName)
+    logFileName = "findToolLog.txt"
+    baseFile = os.path.basename(__file__)
+    excludePaths = ("venv", baseFile, "findToolLog.txt", logFileName)
+    display = True
+    moreInfo = True
+    sysArgs = sys.argv
 
-    if len(sys.argv) == 3:
-        find = sys.argv[1]
-        path = sys.argv[2]
-    elif len(sys.argv) == 2:
-        path = os.getcwd()
-        find = sys.argv[1]
-    elif len(sys.argv) == 1:
+    if len(sysArgs) == 1:
         path = os.getcwd()
         find = "mimcha"
     else:
-        print("Incorrect number of arguments given. Syntax: python findtool.py [find] [path] "
-              "(Path can be left empty to refer to current path)")
-        return
+        find = sysArgs[1]
+        sysArgs = sysArgs[2:]
+        copySysArgs = copy.copy(sysArgs)
+        for arg in sysArgs:
+            flag = True
+            if arg == "-more":
+                moreInfo = True
+            elif arg == "-nomore":
+                moreInfo = False
+            elif arg == "-display":
+                display = True
+            elif arg == "-nodisplay":
+                display = False
+            else:
+                flag = False
 
-    filesFound = findWithinPath(path, find, exclude=excludePaths, display=True)
-    toLog = generatePrettyText(filesFound, find, moreInfo=True)
-    generateLog(toLog, path=path)
+            if flag:
+                copySysArgs.remove(arg)
+
+        if len(copySysArgs) == 0:
+            path = os.getcwd()
+        else:
+            if len(copySysArgs) == 1:
+                path = copySysArgs[0]
+                if not os.path.exists(path):
+                    print(f"The path '{path}' does not exist.")
+                    return
+            else:
+                print("Incorrect arguments given. Syntax: python findtool.py [find] [path] "
+                      "(Path can be left empty to refer to current path)")
+                return
+
+    filesFound = findWithinPath(path, find, exclude=excludePaths, display=display)
+    toLog = generatePrettyText(filesFound, find, moreInfo=moreInfo)
+    generateLog(toLog, path=path, sepFolder=True)
 
 
 if __name__ == "__main__":
