@@ -1,56 +1,78 @@
 import os
-import string
-import random
+import sys
 
 
-def iterateThroughFolder(pathArg, toFindArg, exclude=(), display=False):
+def findWithinPath(pathArg, toFindArg, exclude=(), display=False):
     foundFiles = []
-    for pathFile in os.listdir(pathArg):
-        if pathFile in exclude:
+    for file in os.listdir(pathArg):
+        if file in exclude:
             continue
         if display:
             print(f"Looking through {pathArg}")
-        pathFile = f'{pathArg}{os.sep}{pathFile}'
+        pathFile = f'{pathArg}{os.sep}{file}'
         if os.path.isfile(pathFile):
             found = findInFile(pathFile, toFindArg)
-            if found:
-                foundFiles.append((pathFile, found[1]))
+            if len(found) != 0:
+                foundFiles.append((pathFile, found))
         elif os.path.isdir(pathFile):
-            foundFiles += iterateThroughFolder(pathFile, toFindArg, display=display)
+            foundFiles += findWithinPath(pathFile, toFindArg, display=display, exclude=exclude)
     return foundFiles
 
 
 def findInFile(pathFile, toFindArg):
+    foundInfo = []
     with open(pathFile, 'r', errors='ignore') as pathOpenFile:
         pathReadFileLines = pathOpenFile.readlines()
         for lineNumber, line in enumerate(pathReadFileLines):
             if toFindArg in line:
                 lineInformation = f'Line {lineNumber} at index {line.index(toFindArg)}: {line.strip()}'
-                return True, lineInformation
+                foundInfo.append(lineInformation)
+    return foundInfo
 
 
-def generateTxt(foundList):
-    file = "log.txt"
-    if os.path.exists(file):
-        os.remove(file)
+def generateLog(foundList, file="log.txt", path=os.getcwd()):
+    os.chdir(path)
     with open(file, 'w') as f:
-        for item in foundList:
-            f.write(f'{item[1]} at {item[0]}')
+        f.write(generatePrettyText(foundList))
+    print(f"{file} generated.")
 
 
-def hideFile(file, hiddenSteps=50):
-    os.chdir("testFolder")
-    alphabet = string.ascii_lowercase
+def generatePrettyText(foundList):
+    totalString = ""
+    first = True
+    for fileInfo in foundList:
+        if first:
+            totalString += f"{fileInfo[0]}\n"
+            first = False
+        else:
+            totalString += f"\n{fileInfo[0]}\n"
+        for foundInfo in fileInfo[1]:
+            totalString += f"{foundInfo}\n"
+    return totalString
 
-    for x in range(hiddenSteps):
-        numberOfFolders = random.randint(5, hiddenSteps - x - 5)
-        for y in range(numberOfFolders):
-            choice = random.choice(alphabet)
-            os.mkdir(choice)
-            os.chdir(choice)
+
+def main():
+    logFileName = "log.txt"
+    base = os.path.basename(__file__)
+    excludePaths = ("venv", base, "log.txt", logFileName)
+
+    if len(sys.argv) == 3:
+        find = sys.argv[1]
+        path = sys.argv[2]
+    elif len(sys.argv) == 2:
+        path = os.getcwd()
+        find = sys.argv[1]
+    elif len(sys.argv) == 1:
+        path = os.getcwd()
+        find = "mimcha"
+    else:
+        print("Incorrect number of arguments given. Syntax: python findtool.py [find] [path] "
+              "(Path can be left empty to refer to current path)")
+        return
+
+    filesFound = findWithinPath(path, find, exclude=excludePaths, display=True)
+    generateLog(filesFound, path=path)
 
 
 if __name__ == "__main__":
-    filesFound = iterateThroughFolder(os.getcwd(), "mimcha", exclude=('venv', os.path.basename(__file__)), display=False)
-    print(filesFound)
-    hideFile("lol.txt")
+    main()
