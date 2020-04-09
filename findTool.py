@@ -30,14 +30,14 @@ def findInFile(pathFile, toFindArg):
     return foundInfo
 
 
-def generateLog(foundList, file="log.txt", path=os.getcwd()):
+def generateLog(info, file="log.txt", path=os.getcwd()):
     os.chdir(path)
     with open(file, 'w') as f:
-        f.write(generatePrettyText(foundList))
+        f.write(info)
     print(f"{file} generated.")
 
 
-def generatePrettyText(foundList):
+def generatePrettyText(foundList, moreInfo=True):
     totalString = ""
     first = True
     for fileInfo in foundList:
@@ -46,8 +46,9 @@ def generatePrettyText(foundList):
             first = False
         else:
             totalString += f"\n{fileInfo[0]}\n"
-        for foundInfo in fileInfo[1]:
-            totalString += f"{foundInfo}\n"
+        if moreInfo:
+            for foundInfo in fileInfo[1]:
+                totalString += f"{foundInfo}\n"
     return totalString
 
 
@@ -71,7 +72,8 @@ def main():
         return
 
     filesFound = findWithinPath(path, find, exclude=excludePaths, display=True)
-    generateLog(filesFound, path=path)
+    toLog = generatePrettyText(filesFound, moreInfo=False)
+    generateLog(toLog, path=path)
 
 
 if __name__ == "__main__":
