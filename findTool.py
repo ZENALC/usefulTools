@@ -37,15 +37,22 @@ def generateLog(info, file="log.txt", path=os.getcwd()):
     print(f"{file} generated.")
 
 
-def generatePrettyText(foundList, moreInfo=True):
-    totalString = ""
+def generatePrettyText(foundList, toFindArg, moreInfo=True):
+    if moreInfo:
+        totalString = f"Detailed information of files found with keyword '{toFindArg}':\n\n"
+    else:
+        totalString = f"Files found with keyword '{toFindArg}':\n\n"
+
     first = True
     for fileInfo in foundList:
         if first:
             totalString += f"{fileInfo[0]}\n"
             first = False
         else:
-            totalString += f"\n{fileInfo[0]}\n"
+            if moreInfo:
+                totalString += f"\n{fileInfo[0]}\n"
+            else:
+                totalString += f"{fileInfo[0]}\n"
         if moreInfo:
             for foundInfo in fileInfo[1]:
                 totalString += f"{foundInfo}\n"
@@ -72,7 +79,7 @@ def main():
         return
 
     filesFound = findWithinPath(path, find, exclude=excludePaths, display=True)
-    toLog = generatePrettyText(filesFound, moreInfo=False)
+    toLog = generatePrettyText(filesFound, find, moreInfo=True)
     generateLog(toLog, path=path)
 
 
