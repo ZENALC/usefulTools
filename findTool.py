@@ -4,18 +4,21 @@ import copy
 
 
 def findWithinPath(pathArg, toFindArg, exclude=(), display=True):
+    pathArg = os.path.abspath(pathArg)
     foundFiles = []
     for file in os.listdir(pathArg):
         if file in exclude:
             continue
-        if display:
-            print(f"Looking through {pathArg}")
-        pathFile = f'{pathArg}{os.sep}{file}'
+        pathFile = os.path.join(pathArg, file)
         if os.path.isfile(pathFile):
+            if display:
+                print(f"Looking in {pathFile}")
             found = findInFile(pathFile, toFindArg)
             if len(found) != 0:
                 foundFiles.append((pathFile, found))
         elif os.path.isdir(pathFile):
+            if display:
+                print(f"Looking through {pathFile}")
             foundFiles += findWithinPath(pathFile, toFindArg, display=display, exclude=exclude)
     return foundFiles
 
@@ -36,7 +39,7 @@ def generateLog(info, file="findToolLog.txt", path=os.getcwd(), sepFolder=False)
     os.chdir(path)
     if sepFolder:
         folderName = "Logs"
-        path = f"{path}{os.sep}{folderName}"
+        path = os.path.join(path, folderName)
         if not os.path.exists(path):
             os.mkdir(folderName)
         os.chdir(path)
