@@ -11,15 +11,21 @@ def findWithinPath(pathArg, toFindArg, exclude=(), display=True):
             continue
         pathFile = os.path.join(pathArg, file)
         if os.path.isfile(pathFile):
-            if display:
-                print(f"Looking in {pathFile}")
-            found = findInFile(pathFile, toFindArg)
-            if len(found) != 0:
-                foundFiles.append((pathFile, found))
+            try:
+                if display:
+                    print(f"Looking in {pathFile}")
+                found = findInFile(pathFile, toFindArg)
+                if len(found) != 0:
+                    foundFiles.append((pathFile, found))
+            except PermissionError:
+                print(f"Skipping {pathFile} due to a permission error.")
         elif os.path.isdir(pathFile):
-            if display:
-                print(f"Looking through {pathFile}")
-            foundFiles += findWithinPath(pathFile, toFindArg, display=display, exclude=exclude)
+            try:
+                if display:
+                    print(f"Looking through {pathFile}")
+                foundFiles += findWithinPath(pathFile, toFindArg, display=display, exclude=exclude)
+            except PermissionError:
+                print(f"Skipping {pathFile} due to a permission error.")
     return foundFiles
 
 

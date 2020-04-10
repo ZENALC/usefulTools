@@ -1,4 +1,3 @@
-import pytest
 import findTool
 import os
 
