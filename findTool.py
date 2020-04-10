@@ -70,13 +70,11 @@ def generatePrettyText(foundList, toFindArg, moreInfo=True):
     return totalString
 
 
-def main():
-    logFileName = "findToolLog.txt"
-    baseFile = os.path.basename(__file__)
-    excludePaths = ("venv", baseFile, "findToolLog.txt", logFileName)
+def handleSysArgs():
     display = True
     moreInfo = True
     sysArgs = sys.argv
+    flags = ["-more", "-nomore", "-display", "-nodisplay"]
 
     if len(sysArgs) == 1:
         path = os.getcwd()
@@ -105,15 +103,26 @@ def main():
             path = os.getcwd()
         else:
             if len(copySysArgs) == 1:
-                path = copySysArgs[0]
-                if not os.path.exists(path):
-                    print(f"The path '{path}' does not exist.")
-                    return
+                if sysArgs[0] not in flags:
+                    path = sysArgs[0]
+                    if not os.path.exists(path):
+                        sys.exit(f"The path or flag '{path}' does not exist.")
+                else:
+                    sys.exit(f"Invalid flag {copySysArgs[0]} used. The only available flags are {flags}.")
             else:
-                print("Incorrect arguments given. Syntax: python findtool.py [find] [path] "
-                      "(Path can be left empty to refer to current path)")
-                return
+                sys.exit(f"Invalid arguments or flags {copySysArgs} given. "
+                         "Syntax: python findtool.py [find] [path] -nodisplay -more "
+                         "(Path can be skipped to refer to current path)\n"
+                         f"Valid flags are {flags}")
 
+    return display, moreInfo, find, path
+
+
+def main():
+    logFileName = "findToolLog.txt"
+    baseFile = os.path.basename(__file__)
+    excludePaths = ("venv", baseFile, "findToolLog.txt", logFileName)
+    display, moreInfo, find, path = handleSysArgs()
     filesFound = findWithinPath(path, find, exclude=excludePaths, display=display)
     toLog = generatePrettyText(filesFound, find, moreInfo=moreInfo)
     generateLog(toLog, path=path, sepFolder=True)
