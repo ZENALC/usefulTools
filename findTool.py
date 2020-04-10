@@ -3,11 +3,17 @@ import sys
 import copy
 
 
-def findWithinPath(pathArg, toFindArg, exclude=(), display=True):
+def isHidden(pathArg):
+    return os.path.basename(pathArg).startswith('.')
+
+
+def findWithinPath(pathArg, toFindArg, exclude=(), display=True, hiddenFiles=False):
     pathArg = os.path.abspath(pathArg)
     foundFiles = []
     for file in os.listdir(pathArg):
         if file in exclude:
+            continue
+        if not hiddenFiles and isHidden(file):
             continue
         pathFile = os.path.join(pathArg, file)
         if os.path.isfile(pathFile):
@@ -23,7 +29,8 @@ def findWithinPath(pathArg, toFindArg, exclude=(), display=True):
             try:
                 if display:
                     print(f"Looking through {pathFile}")
-                foundFiles += findWithinPath(pathFile, toFindArg, display=display, exclude=exclude)
+                foundFiles += findWithinPath(pathFile, toFindArg, display=display,
+                                             exclude=exclude, hiddenFiles=hiddenFiles)
             except PermissionError:
                 print(f"Skipping {pathFile} due to a permission error.")
     return foundFiles
@@ -79,8 +86,9 @@ def generatePrettyText(foundList, toFindArg, moreInfo=True):
 def handleSysArgs():
     display = True
     moreInfo = True
+    hiddenFiles = False
     sysArgs = sys.argv
-    flags = ["-more", "-nomore", "-display", "-nodisplay"]
+    flags = ["-more", "-nomore", "-display", "-nodisplay", "-hidden"]
 
     if len(sysArgs) == 1:
         path = os.getcwd()
@@ -99,6 +107,8 @@ def handleSysArgs():
                 display = True
             elif arg == "-nodisplay":
                 display = False
+            elif arg == "-hidden":
+                hiddenFiles = True
             else:
                 flag = False
 
@@ -112,7 +122,7 @@ def handleSysArgs():
                 if sysArgs[0] not in flags:
                     path = sysArgs[0]
                     if not os.path.exists(path):
-                        sys.exit(f"The path or flag '{path}' does not exist.")
+                        sys.exit(f"The path or flag '{path}' does not exist. The only available flags are {flags}.")
                 else:
                     sys.exit(f"Invalid flag {copySysArgs[0]} used. The only available flags are {flags}.")
             else:
@@ -121,15 +131,15 @@ def handleSysArgs():
                          "(Path can be skipped to refer to current path)\n"
                          f"Valid flags are {flags}")
 
-    return display, moreInfo, find, path
+    return display, moreInfo, find, path, hiddenFiles
 
 
 def main():
     logFileName = "findToolLog.txt"
     baseFile = os.path.basename(__file__)
     excludePaths = ("venv", baseFile, "findToolLog.txt", logFileName)
-    display, moreInfo, find, path = handleSysArgs()
-    filesFound = findWithinPath(path, find, exclude=excludePaths, display=display)
+    display, moreInfo, find, path, hiddenFiles = handleSysArgs()
+    filesFound = findWithinPath(path, find, exclude=excludePaths, display=display, hiddenFiles=hiddenFiles)
     toLog = generatePrettyText(filesFound, find, moreInfo=moreInfo)
     generateLog(toLog, path=path, sepFolder=True)
 
