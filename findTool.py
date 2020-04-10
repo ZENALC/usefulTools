@@ -3,7 +3,7 @@ import sys
 import copy
 
 
-def isHidden(pathArg):
+def isHidden(pathArg) -> bool:
     return os.path.basename(pathArg).startswith('.')
 
 
