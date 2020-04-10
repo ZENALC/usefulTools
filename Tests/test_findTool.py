@@ -13,6 +13,8 @@ def test_generateLog() -> None:
     logPath = os.path.join(os.getcwd(), fileName)
     assert os.path.exists(logPath)
     os.remove(logPath)
+    os.chdir("../")
+    os.rmdir("Logs")
 
 
 def test_isHidden() -> None:
@@ -58,3 +60,7 @@ def test_findWithinPath() -> None:
     foundItem = foundList[0]
     assert foundItem[0] == os.path.join(testFolder, testFilename)
     assert len(foundItem[1]) == 5
+    os.chdir(testFolder)
+    os.remove(testFilename)
+    os.chdir("../")
+    os.rmdir(testFolder)
