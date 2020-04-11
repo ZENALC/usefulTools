@@ -64,3 +64,12 @@ def test_findWithinPath() -> None:
     os.remove(testFilename)
     os.chdir("../")
     os.rmdir(testFolder)
+
+
+def test_generatePrettyText() -> None:
+    dummyList = [("/Testfolder", ("Line 9 at index 0: test ipsum test",)),
+                 ("/OtherTestFolder", ("Line 54 at index 0: test ipsum",))]
+    prettyText = findTool.generatePrettyText(dummyList, toFindArg="test")
+    assert dummyList[0][0] in prettyText and dummyList[0][1][0] in prettyText
+    assert dummyList[1][0] in prettyText and dummyList[1][1][0] in prettyText
+
