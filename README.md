@@ -1,1 +1,1 @@
-Simple project that I'm doing for fun.
+# Small project I'm doing for fun.
